@@ -17,6 +17,10 @@ defmodule MunchkinServerWeb.Endpoint do
   #
   # You should set gzip to true if you are running phx.digest
   # when deploying your static files in production.
+  socket "/socket", MunchkinServerWeb.UserSocket,
+    websocket: true,
+    longpoll: false
+
   plug Plug.Static,
     at: "/",
     from: :munchkin_server,

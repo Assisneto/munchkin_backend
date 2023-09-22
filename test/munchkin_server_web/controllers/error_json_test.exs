@@ -2,7 +2,9 @@ defmodule MunchkinServerWeb.ErrorJSONTest do
   use MunchkinServerWeb.ConnCase, async: true
 
   test "renders 404" do
-    assert MunchkinServerWeb.ErrorJSON.render("404.json", %{}) == %{errors: %{detail: "Not Found"}}
+    assert MunchkinServerWeb.ErrorJSON.render("404.json", %{}) == %{
+             errors: %{detail: "Not Found"}
+           }
   end
 
   test "renders 500" do
