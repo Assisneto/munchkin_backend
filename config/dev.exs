@@ -19,12 +19,11 @@ config :munchkin_server, MunchkinServer.Repo,
 config :munchkin_server, MunchkinServerWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {0, 0, 0, 0}, port: System.get_env("PORT", "4000")],
-  check_origin: false,
-  code_reloader: true,
+  http: [port: 4000],
+  url: [scheme: "https", host: {:system, "HOST"}, port: "80"],
   debug_errors: true,
-  secret_key_base: "OBegGA5BgPAyFoQ9Z12qVZgGwbxteUzAhnaN78r1o/bLTNxsN+uHQOAjQb4tg3sn",
-  watchers: []
+  code_reloader: true,
+  check_origin: false
 
 # ## SSL Support
 #
