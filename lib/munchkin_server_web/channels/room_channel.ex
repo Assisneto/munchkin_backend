@@ -23,6 +23,17 @@ defmodule MunchkinServerWeb.RoomChannel do
     {:noreply, socket}
   end
 
+  @impl true
+  def handle_in("edit_player", payload, socket) do
+    broadcast(socket, "edited_player", payload)
+    {:noreply, socket}
+  end
+
+  def handle_in("delete_player", payload, socket) do
+    broadcast(socket, "deleted_player", payload)
+    {:noreply, socket}
+  end
+
   # It is also common to receive messages from the client and
   # broadcast to everyone in the current topic (room:lobby).
   @impl true
