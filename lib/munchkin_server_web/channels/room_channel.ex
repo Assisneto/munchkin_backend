@@ -34,6 +34,16 @@ defmodule MunchkinServerWeb.RoomChannel do
     {:noreply, socket}
   end
 
+  def handle_in("request_sync", payload, socket) do
+    broadcast(socket, "sync", payload)
+    {:noreply, socket}
+  end
+
+  def handle_in("syncing", payload, socket) do
+    broadcast(socket, "synchronize", payload)
+    {:noreply, socket}
+  end
+
   # It is also common to receive messages from the client and
   # broadcast to everyone in the current topic (room:lobby).
   @impl true
