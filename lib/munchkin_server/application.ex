@@ -15,9 +15,9 @@ defmodule MunchkinServer.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: MunchkinServer.PubSub},
       # Start the Endpoint (http/https)
-      MunchkinServerWeb.Endpoint
+      MunchkinServerWeb.Endpoint,
       # Start a worker by calling: MunchkinServer.Worker.start_link(arg)
-      # {MunchkinServer.Worker, arg}
+      {DynamicSupervisor, strategy: :one_for_one, name: MunchkinServer.RoomSupervisor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

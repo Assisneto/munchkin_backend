@@ -12,7 +12,7 @@ defmodule MunchkinServerWeb.UserSocket do
   #
   # channel "room:*", MunchkinServerWeb.RoomChannel
 
-  channel "room:lobby", MunchkinServerWeb.RoomChannel
+  channel "room:*", MunchkinServerWeb.RoomChannel
 
   #
   # To create a channel file, use the mix task:
