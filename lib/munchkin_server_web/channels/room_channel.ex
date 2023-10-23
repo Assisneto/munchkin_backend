@@ -14,9 +14,8 @@ defmodule MunchkinServerWeb.RoomChannel do
 
   defp start_room_agent(room_id) do
     agent_name = room_agent_name(room_id)
-    # Check if the agent already exists
+
     if Process.whereis(agent_name) == nil do
-      # Start a new agent for the room
       {:ok, _pid} =
         DynamicSupervisor.start_child(
           RoomSupervisor,
@@ -25,8 +24,6 @@ defmodule MunchkinServerWeb.RoomChannel do
     end
   end
 
-  # Channels can be used in a request/response fashion
-  # by sending replies to requests from the client
   @impl true
   def handle_in("ping", payload, socket) do
     {:reply, {:ok, payload}, socket}
@@ -58,25 +55,21 @@ defmodule MunchkinServerWeb.RoomChannel do
     {:noreply, socket}
   end
 
-  def handle_in("request_sync", payload, socket) do
-    broadcast(socket, "sync", payload)
+  def handle_in("request_sync", _payload, %{topic: topic} = socket) do
+    players =
+      get_agent_name(topic)
+      |> Room.get_room_state()
+
+    broadcast(socket, "synchronize", %{"players" => players})
     {:noreply, socket}
   end
 
-  def handle_in("syncing", payload, socket) do
-    broadcast(socket, "synchronize", payload)
-    {:noreply, socket}
-  end
-
-  # It is also common to receive messages from the client and
-  # broadcast to everyone in the current topic (room:lobby).
   @impl true
   def handle_in("shout", payload, socket) do
     broadcast(socket, "shout", payload)
     {:noreply, socket}
   end
 
-  # Add authorization logic here as required.
   defp authorized?(_payload) do
     true
   end
