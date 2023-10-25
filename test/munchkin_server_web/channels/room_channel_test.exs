@@ -57,4 +57,25 @@ defmodule MunchkinServerWeb.RoomChannelTest do
     push(socket, "delete_player", %{"name" => player_name})
     assert_broadcast "deleted_player", %{"name" => ^player_name}
   end
+
+  test "reset_all_players resets player attributes and broadcasts them", %{
+    socket: socket,
+    player: player
+  } do
+    push(socket, "new_player", player)
+
+    push(socket, "reset_all_players", %{})
+
+    player_name = player["name"]
+    player_gender = player["gender"]
+
+    assert_receive %Phoenix.Socket.Message{
+      event: "synchronize",
+      payload: %{
+        "players" => [
+          %{"name" => ^player_name, "gender" => ^player_gender, "power" => 0, "level" => 1}
+        ]
+      }
+    }
+  end
 end

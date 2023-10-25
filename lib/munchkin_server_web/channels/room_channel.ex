@@ -64,6 +64,16 @@ defmodule MunchkinServerWeb.RoomChannel do
     {:noreply, socket}
   end
 
+  def handle_in("reset_all_players", _payload, %{topic: topic} = socket) do
+    topic
+    |> get_agent_name()
+    |> MunchkinServer.Room.reset_all_players()
+
+    players = get_agent_name(topic) |> MunchkinServer.Room.get_room_state()
+    broadcast(socket, "synchronize", %{"players" => players})
+    {:noreply, socket}
+  end
+
   @impl true
   def handle_in("shout", payload, socket) do
     broadcast(socket, "shout", payload)

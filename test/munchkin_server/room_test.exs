@@ -41,4 +41,20 @@ defmodule MunchkinServer.RoomTest do
     MunchkinServer.Room.handler_delete_player(room, %{"name" => "John"})
     assert MunchkinServer.Room.get_room_state(room) == []
   end
+
+  test "reset_all_players resets all players' attributes", %{room: room} do
+    player_1 = %{"name" => "John", "gender" => "male", "power" => 10, "level" => 3}
+    player_2 = %{"name" => "Jane", "gender" => "female", "power" => 5, "level" => 2}
+
+    MunchkinServer.Room.handler_add_player(room, player_1)
+    MunchkinServer.Room.handler_add_player(room, player_2)
+
+    MunchkinServer.Room.reset_all_players(room)
+
+    reset_player_1 = %{"name" => "John", "gender" => "male", "power" => 0, "level" => 1}
+    reset_player_2 = %{"name" => "Jane", "gender" => "female", "power" => 0, "level" => 1}
+
+    assert Enum.sort(MunchkinServer.Room.get_room_state(room)) ==
+             Enum.sort([reset_player_2, reset_player_1])
+  end
 end

@@ -31,6 +31,10 @@ defmodule MunchkinServer.Room do
     Agent.update(name, fn state -> delete_player(state, player) end)
   end
 
+  def reset_all_players(name) do
+    Agent.update(name, &reset_player_attributes/1)
+  end
+
   defp add_player(state, player) do
     state ++ [player]
   end
@@ -42,5 +46,12 @@ defmodule MunchkinServer.Room do
 
   def delete_player(state, %{"name" => name}) do
     Enum.reject(state, fn player -> player["name"] == name end)
+  end
+
+  defp reset_player_attributes(state) do
+    Enum.map(state, fn player ->
+      Map.put(player, "level", 1)
+      |> Map.put("power", 0)
+    end)
   end
 end
