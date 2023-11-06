@@ -1,11 +1,13 @@
 defmodule MunchkinServerWeb.RoomChannel do
   alias MunchkinServer.{Room, RoomSupervisor}
+  alias MunchkinServerWeb.Presence
   use MunchkinServerWeb, :channel
 
   @impl true
   def join("room:" <> room_id, payload, socket) do
     if authorized?(payload) do
       start_room_agent(room_id)
+      send(self(), :after_join)
       {:ok, socket}
     else
       {:error, %{reason: "unauthorized"}}
@@ -78,6 +80,39 @@ defmodule MunchkinServerWeb.RoomChannel do
   def handle_in("shout", payload, socket) do
     broadcast(socket, "shout", payload)
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(:after_join, socket) do
+    {:ok, _} =
+      Presence.track(socket, "room", %{
+        online_at: inspect(System.system_time(:second))
+      })
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def terminate(_reason, socket) do
+    handler_terminate(socket)
+  end
+
+  def handler_terminate(%{topic: topic} = socket) do
+    %{"room" => %{metas: presences}} = Presence.list(socket)
+
+    agent_atom_name =
+      get_agent_name(topic)
+      |> Process.whereis()
+
+    terminate_children(agent_atom_name, presences)
+  end
+
+  defp terminate_children(name, presences) when length(presences) <= 1 do
+    DynamicSupervisor.terminate_child(RoomSupervisor, name)
+  end
+
+  defp terminate_children(_name, _presences) do
+    :ok
   end
 
   defp authorized?(_payload) do
