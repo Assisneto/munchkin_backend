@@ -17,7 +17,8 @@ defmodule MunchkinServer.Application do
       # Start the Endpoint (http/https)
       MunchkinServerWeb.Endpoint,
       # Start a worker by calling: MunchkinServer.Worker.start_link(arg)
-      {DynamicSupervisor, strategy: :one_for_one, name: MunchkinServer.RoomSupervisor}
+      {DynamicSupervisor, strategy: :one_for_one, name: MunchkinServer.RoomSupervisor},
+      MunchkinServerWeb.Presence
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
