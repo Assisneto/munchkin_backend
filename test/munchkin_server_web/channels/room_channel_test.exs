@@ -1,5 +1,6 @@
 defmodule MunchkinServerWeb.RoomChannelTest do
   use MunchkinServerWeb.ChannelCase
+  alias MunchkinServerWeb.Presence
 
   setup do
     {:ok, _, socket} =
@@ -11,6 +12,36 @@ defmodule MunchkinServerWeb.RoomChannelTest do
     edited_player = %{"name" => "John", "gender" => "male", "power" => 20, "level" => 2}
 
     %{socket: socket, player: player, edited_player: edited_player}
+  end
+
+  test "presence tracking when joining the room" do
+    {:ok, _, socket} =
+      MunchkinServerWeb.UserSocket
+      |> socket("user_id", %{some: :assign})
+      |> subscribe_and_join(MunchkinServerWeb.RoomChannel, "room:presence")
+
+    %{"room" => %{metas: presences}} = Presence.list(socket)
+
+    assert length(presences) == 1
+  end
+
+  test "terminate_children terminates the child when there is only one presence", %{
+    socket: socket
+  } do
+    MunchkinServerWeb.RoomChannel.terminate("_", socket)
+    assert Process.whereis(room_agent_name("lobby")) == nil
+  end
+
+  test "terminate_children does not terminate the children when there is more than one presence",
+       %{socket: socket} do
+    {:ok, _, _socket} =
+      MunchkinServerWeb.UserSocket
+      |> socket("user_id", %{some: :assign})
+      |> subscribe_and_join(MunchkinServerWeb.RoomChannel, "room:lobby")
+
+    MunchkinServerWeb.RoomChannel.terminate("_", socket)
+
+    assert Process.whereis(room_agent_name("lobby")) != nil
   end
 
   test "ping replies with status ok", %{socket: socket} do
@@ -77,5 +108,9 @@ defmodule MunchkinServerWeb.RoomChannelTest do
         ]
       }
     }
+  end
+
+  defp room_agent_name(room_id) do
+    String.to_atom("room_agent_#{room_id}")
   end
 end
