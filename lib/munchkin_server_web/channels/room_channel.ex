@@ -4,13 +4,30 @@ defmodule MunchkinServerWeb.RoomChannel do
   use MunchkinServerWeb, :channel
 
   @impl true
-  def join("room:" <> room_id, payload, socket) do
-    if authorized?(payload) do
-      start_room_agent(room_id)
-      send(self(), :after_join)
-      {:ok, socket}
-    else
-      {:error, %{reason: "unauthorized"}}
+
+  def join("room:" <> room_id, %{"roomEvent" => room_event}, socket) do
+    case room_event do
+      "create" ->
+        start_room_agent(room_id)
+        send(self(), :after_join)
+        {:ok, socket}
+
+      "enter" ->
+        if room_exists?(room_id) do
+          start_room_agent(room_id)
+          send(self(), :after_join)
+          {:ok, socket}
+        else
+          {:error, %{reason: "room does not exist"}}
+        end
+
+      "connect" ->
+        start_room_agent(room_id)
+        send(self(), :after_join)
+        {:ok, socket}
+
+      _ ->
+        {:error, %{reason: "invalid room event"}}
     end
   end
 
@@ -23,6 +40,15 @@ defmodule MunchkinServerWeb.RoomChannel do
           RoomSupervisor,
           {Room, name: agent_name, initial_state: []}
         )
+    end
+  end
+
+  defp room_exists?(room_id) do
+    agent_name = room_agent_name(room_id)
+
+    case Process.whereis(agent_name) do
+      nil -> false
+      _pid -> true
     end
   end
 
@@ -98,13 +124,15 @@ defmodule MunchkinServerWeb.RoomChannel do
   end
 
   def handler_terminate(%{topic: topic} = socket) do
-    %{"room" => %{metas: presences}} = Presence.list(socket)
+    presences = Presence.list(socket)
 
-    agent_atom_name =
-      get_agent_name(topic)
-      |> Process.whereis()
-
-    terminate_children(agent_atom_name, presences)
+    if Map.has_key?(presences, "room") do
+      %{"room" => %{metas: presences}} = presences
+      agent_atom_name = get_agent_name(topic) |> Process.whereis()
+      terminate_children(agent_atom_name, presences)
+    else
+      IO.puts("No presences found for room")
+    end
   end
 
   defp terminate_children(name, presences) when length(presences) <= 1 do
