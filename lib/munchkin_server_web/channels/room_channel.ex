@@ -120,7 +120,8 @@ defmodule MunchkinServerWeb.RoomChannel do
 
   @impl true
   def terminate(_reason, socket) do
-    handler_terminate(socket)
+    # handler_terminate(socket)
+    socket
   end
 
   def handler_terminate(%{topic: topic} = socket) do
